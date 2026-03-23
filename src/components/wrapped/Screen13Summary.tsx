@@ -1,10 +1,27 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ScreenLayout } from './ScreenLayout';
 import { WrappedData } from '@/lib/types';
+import { useAuth } from '@/lib/auth-context';
+import { useAnalysisStorage } from '@/hooks/useAnalysisStorage';
+import { AuthModal } from '@/components/auth/AuthModal';
 
 export function Screen13Summary({ data, direction }: { data: WrappedData; direction: number }) {
+  const { user } = useAuth();
+  const { saveAnalysis, saving } = useAnalysisStorage();
+  const [saved, setSaved] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
+
+  const handleSave = async () => {
+    if (!user) {
+      setShowAuth(true);
+      return;
+    }
+    const { error } = await saveAnalysis(data);
+    if (!error) setSaved(true);
+  };
   const formatDate = (d: Date) =>
     d.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
 
@@ -77,16 +94,34 @@ export function Screen13Summary({ data, direction }: { data: WrappedData; direct
         Cada mensaje cuenta una historia. Esta es la vuestra.
       </motion.p>
 
-      <motion.div
-        className="mt-6 bg-white/10 px-6 py-2 rounded-full"
+      <motion.button
+        onClick={handleSave}
+        disabled={saving || saved}
+        className={`mt-6 px-6 py-2.5 rounded-full font-semibold text-sm transition-all ${
+          saved
+            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+            : 'bg-white/10 text-white hover:bg-white/20 active:scale-95'
+        }`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 2.2 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        {saved ? 'Guardado' : saving ? 'Guardando...' : user ? 'Guardar análisis' : 'Guardar análisis'}
+      </motion.button>
+
+      <motion.div
+        className="mt-3 bg-white/10 px-6 py-2 rounded-full"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2.5 }}
       >
         <p className="text-white/70 text-xs font-semibold tracking-wider">
           WHATS WRAPPED
         </p>
       </motion.div>
+
+      <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} />
     </ScreenLayout>
   );
 }

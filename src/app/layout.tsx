@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { WrappedProvider } from "@/lib/context";
+import { AuthProvider } from "@/lib/auth-context";
 
 export const metadata: Metadata = {
   title: "WhatsWrapped - Tu Spotify Wrapped de WhatsApp",
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="es" className="h-full antialiased">
       <body className="min-h-full flex flex-col bg-black font-sans">
-        <WrappedProvider>{children}</WrappedProvider>
+        <AuthProvider>
+          <WrappedProvider>{children}</WrappedProvider>
+        </AuthProvider>
       </body>
     </html>
   );
